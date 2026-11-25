@@ -1,0 +1,77 @@
+{
+  "schema": 1,
+  "id": "msi-ms-158l",
+  "displayName": "MSI Alpha 15 B5EEK",
+  "spec": "docs/specs/ms-158l-stage-b.md",
+  "match": {
+    "baseBoardProduct": [ "MS-158L" ]
+  },
+  "blocks": {
+    "MSI_Software":       { "guid": "24418D6A-0A79-524C-9AB1-18B78CA68CE7", "instances": 34, "valueType": "u8" },
+    "MSI_Device":         { "guid": "4AFBD56B-9F91-8F49-81F5-995BA73822AF", "instances": 4,  "valueType": "u8" },
+    "MSI_Power":          { "guid": "2D3CBA6C-1C9C-7F41-B54C-F5D5D580D482", "instances": 3,  "valueType": "u8" },
+    "MSI_Master_Battery": { "guid": "40BA026D-075D-CD4A-9710-F7C57347CAC9", "instances": 16, "valueType": "s16" },
+    "MSI_Slave_Battery":  { "guid": "8DBCCF6E-9DB4-0E46-A3F2-99AFAAA77A7A", "instances": 14, "valueType": "s16" },
+    "MSI_CPU":            { "guid": "BD2A216F-2FB9-A640-B807-DDDBAD656891", "instances": 19, "valueType": "u8" },
+    "MSI_VGA":            { "guid": "1EC3EC7A-1E9B-E74A-9026-CF122B0BBD21", "instances": 18, "valueType": "u8" },
+    "MSI_System":         { "guid": "A1753D7B-B621-DE4A-B41A-55716A0ECE7A", "instances": 21, "valueType": "u8" },
+    "MSI_AP":             { "guid": "A1753D7C-B621-DE4A-B41A-55716A0ECE7A", "instances": 8,  "valueType": "u8" }
+  },
+  "instanceProbe": { "block": "MSI_CPU", "instance": 1 },
+  "allowlist": [
+    { "feature": "power.flags",            "block": "MSI_Power",          "instance": 0,          "spec": "3.1",  "note": "whole byte of flags; only bit 0 (AC) is shown" },
+
+    { "feature": "battery.main",           "block": "MSI_Master_Battery", "range": [ 0, 11 ],     "spec": "3.2",  "note": "raw, units unconfirmed (Q5)" },
+    { "feature": "battery.main.extra",     "block": "MSI_Master_Battery", "range": [ 13, 15 ],    "spec": "3.2",  "note": "unknown meaning, diagnostics only" },
+    { "feature": "keys.winFnSwapCandidate","block": "MSI_Master_Battery", "instance": 12,         "spec": "3.9",  "note": "possible Win/Fn swap (Q8); kept out of the battery UI" },
+    { "feature": "battery.second",         "block": "MSI_Slave_Battery",  "range": [ 0, 13 ],     "spec": "3.3",  "note": "hidden unless present (Q9)" },
+
+    { "feature": "cpu.temperature",        "block": "MSI_CPU",            "instance": 1,          "spec": "3.4" },
+    { "feature": "cpu.fanSpeed",           "block": "MSI_CPU",            "instance": 2,          "spec": "3.4",  "note": "percent of a fan-table scale [H]" },
+    { "feature": "cpu.curve.threshold",    "block": "MSI_CPU",            "range": [ 5, 10 ],     "spec": "3.6",  "writeExperimental": true },
+    { "feature": "cpu.curve.speed",        "block": "MSI_CPU",            "range": [ 11, 17 ],    "spec": "3.6",  "writeExperimental": true },
+
+    { "feature": "gpu.temperature",        "block": "MSI_VGA",            "instance": 1,          "spec": "3.5",  "note": "label as GPU/system temperature" },
+    { "feature": "gpu.fanSpeed",           "block": "MSI_VGA",            "instance": 2,          "spec": "3.5" },
+    { "feature": "gpu.curve.threshold",    "block": "MSI_VGA",            "range": [ 5, 10 ],     "spec": "3.6",  "writeExperimental": true },
+    { "feature": "gpu.curve.speed",        "block": "MSI_VGA",            "range": [ 11, 17 ],    "spec": "3.6",  "writeExperimental": true },
+
+    { "feature": "fan.cpu.tach.high",      "block": "MSI_AP",             "instance": 7,          "spec": "3.7" },
+    { "feature": "fan.cpu.tach.low",       "block": "MSI_AP",             "instance": 6,          "spec": "3.7" },
+    { "feature": "fan.gpu.tach.high",      "block": "MSI_AP",             "instance": 5,          "spec": "3.7" },
+    { "feature": "fan.gpu.tach.low",       "block": "MSI_AP",             "instance": 4,          "spec": "3.7" },
+
+    { "feature": "mode.a",                 "block": "MSI_System",         "instance": 0,          "spec": "3.9" },
+    { "feature": "mode.b",                 "block": "MSI_System",         "instance": 1,          "spec": "3.9" },
+    { "feature": "display.brightness",     "block": "MSI_System",         "instance": 4,          "spec": "3.10" },
+    { "feature": "display.brightnessStored","block": "MSI_System",        "range": [ 5, 6 ],      "spec": "3.10", "note": "possibly DC/AC stored levels [H]" },
+    { "feature": "device.flags",           "block": "MSI_Device",         "instance": 0,          "spec": "3.9",  "note": "whole byte of flags; read-only forever" },
+
+    { "feature": "ec.info",                "block": "MSI_Software",       "range": [ 6, 33 ],     "spec": "3.11" }
+  ],
+  "events": {
+    "guid": "5B3CC38A-40D9-7245-8AE6-1145B751BE3F",
+    "groups": {
+      "modeSelectors": { "codes": [ "0x02", "0x08", "0x73", "0x79", "0x60" ], "refresh": [ "mode.a", "mode.b" ] },
+      "deviceFlags":   { "codes": [ "0x56", "0x57", "0x5F", "0x7B", "0x84" ], "refresh": [ "device.flags" ] },
+      "brightness":    { "codes": [ "0x62", "0x63" ],                         "refresh": [ "display.brightness" ] }
+    }
+  },
+  "fanCurves": {
+    "writeEnabled": false,
+    "writeBlockedReason": "Spec 3.6: fan curve writes stay disabled until open questions Q1 (table layout) and Q3 (does the table take effect) are answered by live reads on this model.",
+    "thresholdMarginC": 5,
+    "fans": {
+      "cpu": { "label": "CPU fan",            "thresholds": "cpu.curve.threshold", "speeds": "cpu.curve.speed" },
+      "gpu": { "label": "GPU / system fan",   "thresholds": "gpu.curve.threshold", "speeds": "gpu.curve.speed" }
+    }
+  },
+  "graphics": {
+    "uefiVariable": "AMD_PBS_SETUP",
+    "uefiGuid": "A339D746-F678-49B3-9FC7-54CE0F9DF226",
+    "modeOffset": 4,
+    "modeValues": { "4": "hybrid", "0": "disabled" },
+    "primaryOffset": 6,
+    "primaryValues": { "1": "integrated", "2": "external" }
+  }
+}
