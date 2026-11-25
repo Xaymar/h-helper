@@ -1,0 +1,35 @@
+name: Build
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+      - name: Build
+        run: dotnet build HHelper.sln -c Release
+      - name: Test
+        run: dotnet test tests/HHelper.Core.Tests -c Release --no-build
+      - name: Publish
+        run: dotnet publish src/HHelper.App -c Release -p:PublishSingleFile=true -o publish
+      - name: Publish self-contained
+        run: dotnet publish src/HHelper.App -c Release -p:PublishSingleFile=true --self-contained true -p:EnableCompressionInSingleFile=true -o publish-sc
+      - uses: actions/upload-artifact@v4
+        with:
+          name: h-helper-win-x64
+          path: publish/HHelper.exe
+      - uses: actions/upload-artifact@v4
+        with:
+          name: h-helper-win-x64-self-contained
+          path: publish-sc/HHelper.exe
